@@ -73,13 +73,31 @@ svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke
 .pill{font-size:12px;font-weight:600;padding:6px 10px;border-radius:999px;background:var(--chip);color:var(--muted)}
 .pill.ok{background:#13261F;color:#6EE7A8}
 .pill.err{background:#2B1618;color:#FCA5A5}
+.hdr-right{display:flex;align-items:center;gap:8px}
+.iconbtn{width:44px;height:44px;border:none;border-radius:50%;background:var(--card);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.iconbtn[aria-pressed="true"]{color:var(--accent)}
+.settings{padding:22px;display:flex;flex-direction:column;gap:16px}
+.settings h2{margin:0;font-size:20px;font-weight:800}
+.settings p{margin:0;font-size:13px;color:var(--muted);line-height:1.5}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:13px;font-weight:600;color:#C5CFDB}
+.field input{height:48px;border-radius:14px;border:1px solid #2B3A50;background:#0F1824;color:var(--text);padding:0 14px;font:500 15px Manrope,system-ui,sans-serif}
+.field input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap}
+.btn{height:48px;padding:0 20px;border:none;border-radius:14px;font:700 15px Manrope,system-ui,sans-serif;cursor:pointer}
+.btn.primary{background:var(--accent);color:#1A1206;flex:1}
+.btn.ghost{background:var(--chip);color:var(--text)}
+.note{font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
 <main>
   <header>
     <h1 class="brand">SYSTEM SPARROW</h1>
-    <div class="status" id="status" role="status"><i></i><span>Łączenie…</span></div>
+    <div class="hdr-right">
+      <div class="status" id="status" role="status"><i></i><span>Łączenie…</span></div>
+      <button class="iconbtn" id="settingsBtn" aria-label="Ustawienia połączenia" aria-pressed="false"><span class="msr" aria-hidden="true">settings</span></button>
+    </div>
   </header>
 
   <!-- EKRAN GŁÓWNY -->
@@ -115,6 +133,31 @@ svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke
     <h2 id="rvName"></h2>
     <p id="rvState"></p>
   </section>
+
+  <!-- USTAWIENIA POŁĄCZENIA (zapisywane tylko w tym telefonie) -->
+  <section id="settingsView" class="card settings" hidden>
+    <h2>Połączenie z brokerem</h2>
+    <p>Dane zapisują się tylko w tym telefonie, nie trafiają na GitHuba. Puste pola = publiczny broker testowy (bez szyfrowania hasłem).</p>
+    <form id="settingsForm" style="display:flex;flex-direction:column;gap:14px">
+      <div class="field">
+        <label for="fHost">Adres brokera (EMQX)</label>
+        <input id="fHost" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="np. z1669936.ala.eu-central-1.emqxsl.com">
+      </div>
+      <div class="field">
+        <label for="fUser">Login</label>
+        <input id="fUser" type="text" autocomplete="username" autocapitalize="off" spellcheck="false">
+      </div>
+      <div class="field">
+        <label for="fPass">Hasło</label>
+        <input id="fPass" type="password" autocomplete="current-password">
+      </div>
+      <div class="btnrow">
+        <button class="btn primary" type="submit">Zapisz i połącz</button>
+        <button class="btn ghost" type="button" id="fClear">Wyczyść</button>
+      </div>
+      <span class="note" id="fInfo"></span>
+    </form>
+  </section>
 </main>
 
 <nav id="nav" aria-label="Pomieszczenia"></nav>
@@ -145,6 +188,25 @@ const CONFIG = {
   ]
 };
 // ===========================================================================
+
+// ---------------------------------------------------------------- Ustawienia (localStorage)
+const STORE_KEY = 'sparrow.mqtt';
+function loadCreds() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch (e) { return {}; }
+}
+function saveCreds(c) {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(c)); return true; } catch (e) { return false; }
+}
+function brokerSettings() {
+  const c = loadCreds();
+  if (c.host) {
+    // Adres można wpisać sam ("abc.emqxsl.com") albo z portem ("abc.emqxsl.com:8084")
+    const clean = c.host.replace(/^(wss?|mqtts?):\/\//, '').replace(/\/.*$/, '').trim();
+    const [host, port] = clean.split(':');
+    return { url: `wss://${host}:${port || 8084}/mqtt`, username: c.user || undefined, password: c.pass || undefined, private: true };
+  }
+  return { url: CONFIG.broker, username: CONFIG.username || undefined, password: CONFIG.password || undefined, private: false };
+}
 
 // Ikony: nazwy z https://fonts.google.com/icons (styl Rounded)
 const icon = name => `<span class="msr" aria-hidden="true">${name}</span>`;
@@ -179,7 +241,10 @@ function showView(id) {
     if (b.dataset.view === id) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   });
   $('home').hidden = id !== 'home';
-  $('roomView').hidden = id === 'home';
+  $('roomView').hidden = id === 'home' || id === 'settings';
+  $('settingsView').hidden = id !== 'settings';
+  $('settingsBtn').setAttribute('aria-pressed', id === 'settings' ? 'true' : 'false');
+  if (id === 'settings') fillSettings();
   render();
   window.scrollTo(0, 0);
 }
@@ -245,10 +310,11 @@ function toggle(r) {
 
 function connectMqtt() {
   if (typeof mqtt === 'undefined') { setStatus('err', 'Brak biblioteki MQTT'); return; }
-  client = mqtt.connect(CONFIG.broker, {
+  const b = brokerSettings();
+  client = mqtt.connect(b.url, {
     clientId: 'sparrow-app-' + Math.random().toString(16).slice(2, 10),
-    username: CONFIG.username || undefined,
-    password: CONFIG.password || undefined,
+    username: b.username,
+    password: b.password,
     keepalive: 30,
     reconnectPeriod: 3000,
     connectTimeout: 10000,
@@ -257,7 +323,7 @@ function connectMqtt() {
 
   client.on('connect', () => {
     connected = true;
-    setStatus('ok', 'Połączono');
+    setStatus('ok', b.private ? 'Połączono' : 'Połączono (publiczny)');
     const topics = [CONFIG.tempTopic];
     rooms.forEach(r => topics.push(r.base + '/state', r.base + '/online'));
     client.subscribe(topics);
@@ -266,7 +332,11 @@ function connectMqtt() {
   client.on('reconnect', () => setStatus('', 'Łączenie…'));
   client.on('offline',   () => { connected = false; setStatus('err', 'Rozłączono'); render(); });
   client.on('close',     () => { connected = false; render(); });
-  client.on('error',     e  => { console.warn('MQTT:', e && e.message); setStatus('err', 'Błąd połączenia'); });
+  client.on('error', e => {
+    console.warn('MQTT:', e && e.message);
+    const auth = e && (e.code === 4 || e.code === 5 || /auth|Not authorized/i.test(e.message || ''));
+    setStatus('err', auth ? 'Zły login lub hasło' : 'Błąd połączenia');
+  });
 
   client.on('message', (topic, payload) => {
     const msg = payload.toString().trim();
@@ -342,6 +412,36 @@ async function loadWeather() {
     $('weatherDesc').textContent = 'Brak danych pogodowych';
   }
 }
+
+// ---------------------------------------------------------------- Ustawienia: formularz
+function fillSettings() {
+  const c = loadCreds();
+  $('fHost').value = c.host || '';
+  $('fUser').value = c.user || '';
+  $('fPass').value = c.pass || '';
+  $('fInfo').textContent = c.host ? 'Używasz prywatnego brokera (szyfrowane połączenie wss).' : 'Używasz publicznego brokera testowego.';
+}
+function reconnect() {
+  if (client) { try { client.end(true); } catch (e) {} }
+  connected = false;
+  rooms.forEach(r => { r.light = null; r.online = null; r.pending = false; r.noReply = false; });
+  setStatus('', 'Łączenie…');
+  render();
+  connectMqtt();
+}
+$('settingsBtn').addEventListener('click', () => showView(currentView === 'settings' ? 'home' : 'settings'));
+$('settingsForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const ok = saveCreds({ host: $('fHost').value.trim(), user: $('fUser').value.trim(), pass: $('fPass').value });
+  $('fInfo').textContent = ok ? 'Zapisano. Łączę…' : 'Nie udało się zapisać w tym telefonie.';
+  reconnect();
+  setTimeout(() => showView('home'), 600);
+});
+$('fClear').addEventListener('click', () => {
+  saveCreds({});
+  fillSettings();
+  reconnect();
+});
 
 // ---------------------------------------------------------------- Start
 buildRoomList();
