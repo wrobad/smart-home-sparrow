@@ -311,7 +311,8 @@ function toggle(r) {
 function connectMqtt() {
   if (typeof mqtt === 'undefined') { setStatus('err', 'Brak biblioteki MQTT'); return; }
   const b = brokerSettings();
-  client = mqtt.connect(b.url, {
+  console.log('MQTT →', b.url, b.private ? '(prywatny)' : '(publiczny)');
+  const me = mqtt.connect(b.url, {
     clientId: 'sparrow-app-' + Math.random().toString(16).slice(2, 10),
     username: b.username,
     password: b.password,
@@ -320,8 +321,11 @@ function connectMqtt() {
     connectTimeout: 10000,
     clean: true
   });
+  client = me;
+  // Każde zdarzenie sprawdza, czy pochodzi z aktualnego połączenia
+  const on = (ev, fn) => me.on(ev, (...a) => { if (client === me) fn(...a); });
 
-  client.on('connect', () => {
+  on('connect', () => {
     connected = true;
     setStatus('ok', b.private ? 'Połączono' : 'Połączono (publiczny)');
     const topics = [CONFIG.tempTopic];
@@ -329,16 +333,16 @@ function connectMqtt() {
     client.subscribe(topics);
     render();
   });
-  client.on('reconnect', () => setStatus('', 'Łączenie…'));
-  client.on('offline',   () => { connected = false; setStatus('err', 'Rozłączono'); render(); });
-  client.on('close',     () => { connected = false; render(); });
-  client.on('error', e => {
+  on('reconnect', () => setStatus('', 'Łączenie…'));
+  on('offline',   () => { connected = false; setStatus('err', 'Rozłączono'); render(); });
+  on('close',     () => { connected = false; render(); });
+  on('error', e => {
     console.warn('MQTT:', e && e.message);
     const auth = e && (e.code === 4 || e.code === 5 || /auth|Not authorized/i.test(e.message || ''));
     setStatus('err', auth ? 'Zły login lub hasło' : 'Błąd połączenia');
   });
 
-  client.on('message', (topic, payload) => {
+  on('message', (topic, payload) => {
     const msg = payload.toString().trim();
     if (topic === CONFIG.tempTopic) {
       const t = parseFloat(msg.replace(',', '.'));
@@ -422,7 +426,8 @@ function fillSettings() {
   $('fInfo').textContent = c.host ? 'Używasz prywatnego brokera (szyfrowane połączenie wss).' : 'Używasz publicznego brokera testowego.';
 }
 function reconnect() {
-  if (client) { try { client.end(true); } catch (e) {} }
+  // Stare połączenie zamykamy i odcinamy od zdarzeń, żeby nie nadpisywało statusu
+  if (client) { const old = client; client = null; try { old.removeAllListeners(); old.end(true); } catch (e) {} }
   connected = false;
   rooms.forEach(r => { r.light = null; r.online = null; r.pending = false; r.noReply = false; });
   setStatus('', 'Łączenie…');
