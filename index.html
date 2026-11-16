@@ -13,16 +13,29 @@
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..600,0..1,0&display=block" rel="stylesheet">
 <script src="https://unpkg.com/mqtt@5/dist/mqtt.min.js"></script>
 <style>
-:root{--bg:#0E1621;--card:#172231;--chip:#223044;--muted:#93A1B3;--text:#E8EDF3;--accent:#F5A524;--nav:#111B28}
+:root{--bg:#0E1621;--card:#172231;--chip:#223044;--muted:#93A1B3;--text:#E8EDF3;--accent:#F5A524;--nav:#111B28;--on-bg:#2A2414;--on-border:#6B4E16}
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Manrope,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
-main{padding:calc(20px + env(safe-area-inset-top)) 20px 120px;display:flex;flex-direction:column;gap:14px;max-width:560px;margin:0 auto}
-header{display:flex;justify-content:space-between;align-items:center;min-height:40px}
-.brand{margin:0;font-size:15px;font-weight:700;letter-spacing:.12em;color:#C5CFDB}
-.status{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;font-size:13px;font-weight:600;background:#2A2414;color:#FCD34D}
-.status i{width:8px;height:8px;border-radius:50%;background:currentColor}
+main{padding:calc(18px + env(safe-area-inset-top)) 18px 120px;display:flex;flex-direction:column;gap:14px;max-width:560px;margin:0 auto}
+[hidden]{display:none!important}
+button{font-family:inherit}
+
+/* Ikony Material Symbols: kontur, wypełnione gdy aktywne */
+.msr{font-family:'Material Symbols Rounded';font-weight:normal;font-style:normal;font-size:24px;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;direction:ltr;-webkit-font-smoothing:antialiased;user-select:none;font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;transition:font-variation-settings .25s}
+.fill,.tile.on .msr,.row.on .ico .msr,nav a[aria-current="page"] .msr,.iconbtn[aria-current="page"] .msr{font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24}
+
+/* Nagłówek */
+header{display:flex;align-items:center;gap:8px;min-height:44px}
+.brand{flex:1;min-width:0;margin:0;font-size:12px;font-weight:700;letter-spacing:.08em;color:#C5CFDB;white-space:nowrap}
+.status{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;font-size:12px;font-weight:600;background:#2A2414;color:#FCD34D}
+.status i{width:7px;height:7px;border-radius:50%;background:currentColor}
 .status.ok{background:#13261F;color:#6EE7A8}
 .status.err{background:#2B1618;color:#FCA5A5}
+.iconbtn{flex-shrink:0;width:44px;height:44px;border:none;border-radius:50%;background:var(--card);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.iconbtn.cam{color:var(--accent)}
+.iconbtn[aria-current="page"]{background:var(--on-bg);color:var(--accent)}
+
+/* Karty */
 .card{background:var(--card);border-radius:24px}
 .clock{padding:20px 22px;display:flex;justify-content:space-between;align-items:center}
 .time{font-size:56px;font-weight:800;color:var(--accent);letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
@@ -30,52 +43,71 @@ header{display:flex;justify-content:space-between;align-items:center;min-height:
 .date b{font-size:15px}
 .date span{font-size:13px;color:var(--muted)}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.tile{padding:18px;display:flex;flex-direction:column;gap:10px}
-.tile .lbl{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
-.tile .big{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1}
-.tile .sub{font-size:12px;color:var(--muted);line-height:1.4;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.wtile{padding:18px;display:flex;flex-direction:column;gap:10px}
+.wtile .lbl{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.wtile .lbl .msr{font-size:20px}
+.wtile .big{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.wtile .sub{font-size:12px;color:var(--muted);line-height:1.4;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.wtile .sub .msr{font-size:16px}
 .sechead{display:flex;justify-content:space-between;align-items:baseline;margin-top:6px}
 .sechead h2{margin:0;font-size:17px;font-weight:700}
 .sechead span{font-size:13px;color:var(--muted)}
-.list{display:flex;flex-direction:column;gap:10px}
-.room{padding:12px 14px;display:flex;align-items:center;gap:14px;border-radius:20px}
+
+/* Lista świateł na ekranie głównym */
+.list{display:flex;flex-direction:column;gap:8px}
+.row{padding:12px 14px;display:flex;align-items:center;gap:14px;border-radius:20px}
 .ico{width:44px;height:44px;border-radius:14px;background:var(--chip);color:var(--muted);display:flex;align-items:center;justify-content:center;flex:none;transition:.2s}
-.room.on .ico{background:var(--accent);color:#1A1206}
-.room .name{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
-.room .name b{font-size:15px}
-.room .name span{font-size:12px;color:var(--muted)}
-.room.on .name span{color:var(--accent);font-weight:600}
+.row.on .ico{background:var(--accent);color:#1A1206}
+.row .name{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0;border:none;background:none;color:inherit;text-align:left;padding:0;cursor:pointer}
+.row .name b{font-size:15px}
+.row .name span{font-size:12px;color:var(--muted)}
+.row.on .name span{color:var(--accent);font-weight:600}
 .switch{width:52px;height:32px;border:none;border-radius:999px;background:#2B3A50;padding:3px;display:flex;cursor:pointer;flex:none;transition:.2s}
 .switch i{width:26px;height:26px;border-radius:50%;background:var(--muted);transition:transform .2s,background .2s}
 .switch[aria-checked="true"]{background:var(--accent)}
 .switch[aria-checked="true"] i{transform:translateX(20px);background:var(--bg)}
-.switch:disabled,.bigbtn:disabled{opacity:.4;cursor:default}
-nav{position:fixed;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:10px 12px calc(14px + env(safe-area-inset-bottom));background:var(--nav);border-top:1px solid #1E2A3B}
-nav button{border:none;background:transparent;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;cursor:pointer;font:600 12px Manrope,system-ui,sans-serif}
-nav button span{width:56px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;transition:.2s}
-nav button[aria-current="page"]{color:var(--accent);font-weight:700}
-nav button[aria-current="page"] span{background:#2A2414}
-svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
-[hidden]{display:none!important}
-/* Ikony Material Symbols Rounded: kontur, a po aktywacji wypełnione */
-.msr{font-family:'Material Symbols Rounded';font-weight:normal;font-style:normal;font-size:24px;line-height:1;letter-spacing:normal;text-transform:none;white-space:nowrap;direction:ltr;-webkit-font-smoothing:antialiased;user-select:none;font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;transition:font-variation-settings .25s}
-.msr.fill,.room.on .ico .msr,nav button[aria-current="page"] .msr,.bigbtn.on .msr{font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24}
-.tile .lbl .msr{font-size:20px}
-.tile .sub .msr{font-size:16px}
-.bigbtn .msr{font-size:80px;font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 48}
-.bigbtn.on .msr{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 48}
-.roomview{display:flex;flex-direction:column;align-items:center;gap:22px;padding:36px 20px}
-.bigbtn{width:180px;height:180px;border-radius:50%;border:none;background:var(--chip);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.25s}
-.bigbtn svg{width:72px;height:72px;stroke-width:1.5}
-.bigbtn.on{background:var(--accent);color:#1A1206;box-shadow:0 0 0 12px rgba(245,165,36,.15)}
-.roomview h2{margin:0;font-size:26px;font-weight:800}
-.roomview p{margin:0;color:var(--muted);font-size:14px;text-align:center}
-.pill{font-size:12px;font-weight:600;padding:6px 10px;border-radius:999px;background:var(--chip);color:var(--muted)}
+.switch:disabled,.tile:disabled{opacity:.45;cursor:default}
+
+/* Ekran pomieszczenia – kafelki */
+.roomhead{display:flex;justify-content:space-between;align-items:center;margin-top:4px;gap:10px}
+.roomhead h2{margin:0;font-size:26px;font-weight:800}
+.pill{flex-shrink:0;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:6px 10px;border-radius:999px;background:var(--chip);color:var(--muted)}
+.pill i{width:7px;height:7px;border-radius:50%;background:currentColor}
 .pill.ok{background:#13261F;color:#6EE7A8}
 .pill.err{background:#2B1618;color:#FCA5A5}
-.hdr-right{display:flex;align-items:center;gap:8px}
-.iconbtn{width:44px;height:44px;border:none;border-radius:50%;background:var(--card);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
-.iconbtn[aria-pressed="true"]{color:var(--accent)}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.tile{height:168px;border-radius:24px;padding:18px;border:1px solid #1E2A3B;background:var(--card);color:var(--text);display:flex;gap:10px;text-align:left}
+button.tile{cursor:pointer}
+.tile.on{background:var(--on-bg);border-color:var(--on-border)}
+.tile .body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between}
+.tile .tico{width:48px;height:48px;border-radius:16px;background:var(--chip);display:flex;align-items:center;justify-content:center}
+.tile.on .tico{background:var(--accent);color:#1A1206!important}
+.tile .tname{font-size:16px;font-weight:800}
+.tile .tstate{font-size:13px;color:var(--muted)}
+.tile.on .tstate{color:var(--accent);font-weight:700}
+.tile .val{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.tile .val small{font-size:14px;font-weight:700;color:var(--muted)}
+.tile .val.txt{font-size:20px}
+.tile .top{display:flex;justify-content:space-between;align-items:flex-start}
+.badge{font-size:11px;font-weight:800;padding:4px 8px;border-radius:999px;background:#13261F;color:#6EE7A8}
+.badge.alarm{background:#3B1518;color:#FCA5A5}
+.leds{width:14px;display:flex;flex-direction:column-reverse;gap:3px;align-self:stretch}
+.leds span{flex:1;border-radius:3px;opacity:.18;transition:opacity .3s}
+.leds span.lit{opacity:1}
+
+/* Kamery */
+.camcard{overflow:hidden;display:flex;flex-direction:column}
+.camview{position:relative;height:196px;background:#0A1018;color:#3A4A60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:0 24px}
+.camview .msr{font-size:44px}
+.camview p{margin:0;font-size:12px;color:#7A8BA0}
+.camview img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.live{position:absolute;top:12px;left:12px;display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.06em;padding:5px 9px;border-radius:999px;background:#3B1518;color:#FCA5A5}
+.live i{width:7px;height:7px;border-radius:50%;background:#EF4444}
+.camfoot{padding:14px 16px;display:flex;align-items:center;gap:12px}
+.camfoot b{font-size:16px}
+.camfoot span{font-size:12px;color:var(--muted)}
+
+/* Ustawienia */
 .settings{padding:22px;display:flex;flex-direction:column;gap:16px}
 .settings h2{margin:0;font-size:20px;font-weight:800}
 .settings p{margin:0;font-size:13px;color:var(--muted);line-height:1.5}
@@ -88,60 +120,91 @@ svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke
 .btn.primary{background:var(--accent);color:#1A1206;flex:1}
 .btn.ghost{background:var(--chip);color:var(--text)}
 .note{font-size:12px;color:var(--muted)}
+
+/* Dolne menu */
+nav{position:fixed;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:10px 12px calc(14px + env(safe-area-inset-bottom));background:var(--nav);border-top:1px solid #1E2A3B}
+nav a{text-decoration:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;font-size:12px;font-weight:600;cursor:pointer}
+nav a span{width:56px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;transition:.2s}
+nav a[aria-current="page"]{color:var(--accent);font-weight:700}
+nav a[aria-current="page"] span{background:var(--on-bg)}
+
+/* Ekran startowy */
+#splash{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .4s}
+#splash.hide{opacity:0;pointer-events:none}
+.logo{width:128px;height:128px;border-radius:36px;background:var(--accent);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 12px var(--card)}
+#splash h1{margin:0;font-size:34px;font-weight:800;letter-spacing:.16em}
+#splash p{margin:0;font-size:15px;color:var(--muted)}
+.dots{position:absolute;bottom:calc(64px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:14px;font-size:13px;color:var(--muted)}
+.dots div{display:flex;gap:8px}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:blink 1.2s infinite}
+.dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
 </style>
 </head>
 <body>
+
+<!-- EKRAN STARTOWY -->
+<div id="splash" role="status" aria-label="Uruchamianie System Sparrow">
+  <div class="logo">
+    <svg width="88" height="88" viewBox="0 0 64 64" aria-hidden="true"><path d="M12 40c0-12 10-20 22-20 3 0 5 .4 7 1.3l9-4.3 8 2-8 4.5c1.4 2 2 4.3 2 6.5 0 12-10 20-22 20H16l-9 5 4-9c.6-2 1-4 1-6z" fill="#0E1621"/><path d="M22 38c5-5 13-5 18 0-5 3-13 3-18 0z" fill="#F5A524" opacity=".35"/><circle cx="45" cy="27" r="2.2" fill="#F5A524"/></svg>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+    <h1>SPARROW</h1>
+    <p>System inteligentnego domu</p>
+  </div>
+  <div class="dots"><div><i></i><i></i><i></i></div>Łączenie z domem…</div>
+</div>
+
 <main>
   <header>
     <h1 class="brand">SYSTEM SPARROW</h1>
-    <div class="hdr-right">
-      <div class="status" id="status" role="status"><i></i><span>Łączenie…</span></div>
-      <button class="iconbtn" id="settingsBtn" aria-label="Ustawienia połączenia" aria-pressed="false"><span class="msr" aria-hidden="true">settings</span></button>
-    </div>
+    <div class="status" id="status" role="status"><i></i><span>Łączenie…</span></div>
+    <button class="iconbtn cam" id="camBtn" aria-label="Kamery"><span class="msr" aria-hidden="true">videocam</span></button>
+    <button class="iconbtn" id="settingsBtn" aria-label="Ustawienia połączenia"><span class="msr" aria-hidden="true">settings</span></button>
   </header>
 
   <!-- EKRAN GŁÓWNY -->
-  <div id="home" class="view" style="display:flex;flex-direction:column;gap:14px">
+  <div id="home" style="display:flex;flex-direction:column;gap:14px">
     <section class="card clock">
       <div class="time" id="time">--:--</div>
       <div class="date"><b id="weekday"></b><span id="date"></span></div>
     </section>
-
     <div class="grid2">
-      <section class="card tile">
+      <section class="card wtile">
         <div class="lbl" style="color:#7DD3FC"><span class="msr" id="weatherIcon" aria-hidden="true">partly_cloudy_day</span>Na zewnątrz</div>
         <div class="big" id="outTemp">–</div>
         <div class="sub"><span id="weatherDesc">Pobieranie pogody…</span><span id="wind"></span></div>
       </section>
-      <section class="card tile">
+      <section class="card wtile">
         <div class="lbl" style="color:var(--accent)"><span class="msr" aria-hidden="true">device_thermostat</span>Wewnątrz</div>
         <div class="big" id="inTemp">–</div>
         <div class="sub"><span class="msr" aria-hidden="true">bedtime</span><span id="moon"></span></div>
       </section>
     </div>
-
     <div class="sechead"><h2>Oświetlenie</h2><span id="countOn"></span></div>
     <div class="list" id="roomList"></div>
   </div>
 
   <!-- EKRAN POMIESZCZENIA -->
-  <section id="roomView" class="card roomview" hidden>
-    <span class="pill" id="rvDevice">Brak danych z urządzenia</span>
-    <button class="bigbtn" id="rvBtn" aria-label="Przełącz światło">
-      <span class="msr" aria-hidden="true">lightbulb</span>
-    </button>
-    <h2 id="rvName"></h2>
-    <p id="rvState"></p>
-  </section>
+  <div id="roomView" hidden style="display:flex;flex-direction:column;gap:14px">
+    <div class="roomhead"><h2 id="rvName"></h2><span class="pill" id="rvDevice"><i></i><span>Brak danych</span></span></div>
+    <div class="tiles" id="rvTiles"></div>
+  </div>
+
+  <!-- KAMERY -->
+  <div id="camView" hidden style="display:flex;flex-direction:column;gap:14px">
+    <div class="roomhead"><h2>Kamery</h2><span class="note" id="camCount"></span></div>
+    <div id="camList" style="display:flex;flex-direction:column;gap:14px"></div>
+  </div>
 
   <!-- USTAWIENIA POŁĄCZENIA (zapisywane tylko w tym telefonie) -->
   <section id="settingsView" class="card settings" hidden>
     <h2>Połączenie z brokerem</h2>
-    <p>Dane zapisują się tylko w tym telefonie, nie trafiają na GitHuba. Puste pola = publiczny broker testowy (bez szyfrowania hasłem).</p>
+    <p>Dane zapisują się tylko w tym telefonie, nie trafiają na GitHuba.</p>
     <form id="settingsForm" style="display:flex;flex-direction:column;gap:14px">
       <div class="field">
         <label for="fHost">Adres brokera (EMQX)</label>
-        <input id="fHost" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="np. z1669936.ala.eu-central-1.emqxsl.com">
+        <input id="fHost" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false">
       </div>
       <div class="field">
         <label for="fUser">Login</label>
@@ -167,25 +230,39 @@ svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke
 // KONFIGURACJA – zmieniaj tylko tutaj
 // ===========================================================================
 const CONFIG = {
-  // Broker MQTT po WebSocket (strona przez https wymaga wss://)
+  // Publiczny broker testowy (używany tylko, gdy w ustawieniach nie ma loginu)
   broker:   'wss://broker.hivemq.com:8884/mqtt',
-  username: '',          // puste = bez logowania
-  password: '',
-
-  // Temat, na który ESP wysyła temperaturę wewnątrz (np. "22.5")
-  tempTopic: 'dom_adam_2026/pokoj1/temperatura',
+  // Prywatny broker EMQX (adres nie jest tajny; login i hasło wpisuje się w aplikacji)
+  privateHost: 'z1669936.ala.eu-central-1.emqxsl.com',
 
   // Lokalizacja do pogody (Open-Meteo, bez klucza API)
   location: { name: 'Polska', lat: 52.23, lon: 21.01 },
 
-  // Pomieszczenia: tematy = base + "/set", "/state", "/online"
+  // Pomieszczenia. Tematy MQTT = prefix + końcówka:
+  //   światło główne   /swiatlo      (+ /set, /state, /online)
+  //   światło dod.     /swiatlo2     (+ /set, /state)
+  //   wentylator       /wentylator   (+ /set, /state)
+  //   czujniki         /temperatura  /wilgotnosc  /ruch  /co2  /zalanie
+  // nav: false = brak ikony w dolnym menu
   rooms: [
-    { id: 'pokoj',    name: 'Pokój',    base: 'dom_adam_2026/pokoj1/swiatlo',   icon: 'weekend' },
-    { id: 'kuchnia',  name: 'Kuchnia',  base: 'dom_adam_2026/kuchnia/swiatlo',  icon: 'cooking' },
-    { id: 'lazienka', name: 'Łazienka', base: 'dom_adam_2026/lazienka/swiatlo', icon: 'bathtub' },
-    // nav: false = pokój tylko na liście świateł, bez ikony w dolnym menu
-    { id: 'przedpokoj', name: 'Przedpokój', base: 'dom_adam_2026/przedpokoj/swiatlo', icon: 'door_front', nav: false }
-  ]
+    { id: 'pokoj',      name: 'Pokój',      prefix: 'dom_adam_2026/pokoj1',     icon: 'weekend',
+      tiles: ['light', 'light2', 'temp', 'hum', 'motion', 'co2'] },
+    { id: 'kuchnia',    name: 'Kuchnia',    prefix: 'dom_adam_2026/kuchnia',    icon: 'cooking',
+      tiles: ['light', 'light2', 'temp', 'hum', 'leak', 'co2'], light2Name: 'Światło nad blatem' },
+    { id: 'lazienka',   name: 'Łazienka',   prefix: 'dom_adam_2026/lazienka',   icon: 'bathtub',
+      tiles: ['light', 'fan', 'temp', 'hum', 'motion', 'co2'] },
+    { id: 'przedpokoj', name: 'Przedpokój', prefix: 'dom_adam_2026/przedpokoj', icon: 'door_front', nav: false,
+      tiles: ['light', 'light2', 'temp', 'hum', 'motion', 'co2'] }
+  ],
+
+  // Kamery: url = adres obrazu (np. strumień MJPEG albo zdjęcie). Puste = jeszcze nie podłączona.
+  cameras: [
+    { name: 'Kuchnia', url: '' },
+    { name: 'Pokój',   url: '' }
+  ],
+
+  // Wnętrze na ekranie głównym = temperatura z tego pomieszczenia
+  insideRoom: 'pokoj'
 };
 // ===========================================================================
 
@@ -199,93 +276,186 @@ function saveCreds(c) {
 }
 function brokerSettings() {
   const c = loadCreds();
+  if (!c.host && c.user) c.host = CONFIG.privateHost;
   if (c.host) {
-    // Adres można wpisać sam ("abc.emqxsl.com") albo z portem ("abc.emqxsl.com:8084")
     const clean = c.host.replace(/^(wss?|mqtts?):\/\//, '').replace(/\/.*$/, '').trim();
     const [host, port] = clean.split(':');
     return { url: `wss://${host}:${port || 8084}/mqtt`, username: c.user || undefined, password: c.pass || undefined, private: true };
   }
-  return { url: CONFIG.broker, username: CONFIG.username || undefined, password: CONFIG.password || undefined, private: false };
+  return { url: CONFIG.broker, username: undefined, password: undefined, private: false };
 }
 
-// Ikony: nazwy z https://fonts.google.com/icons (styl Rounded)
-const icon = name => `<span class="msr" aria-hidden="true">${name}</span>`;
 const $ = id => document.getElementById(id);
+const icon = (name, extra = '') => `<span class="msr ${extra}" aria-hidden="true">${name}</span>`;
 
-// Stan pomieszczeń: light = true/false/null (nieznany), online = true/false/null
-const rooms = CONFIG.rooms.map(r => ({ ...r, light: null, online: null }));
+// ---------------------------------------------------------------- Stan
+// sw = przełączniki { light, light2, fan } : true/false/null ; s = czujniki
+const rooms = CONFIG.rooms.map(r => ({
+  ...r, online: null,
+  sw: { light: null, light2: null, fan: null },
+  pend: {}, noReply: {}, timers: {},
+  s: { temp: null, hum: null, motion: null, co2: null, leak: null }
+}));
 let client = null, connected = false, currentView = 'home';
 
-// ---------------------------------------------------------------- UI: lista
+const SWITCH_TOPIC = { light: 'swiatlo', light2: 'swiatlo2', fan: 'wentylator' };
+const SENSOR_TOPIC = { temperatura: 'temp', wilgotnosc: 'hum', ruch: 'motion', co2: 'co2', zalanie: 'leak' };
+
+// ---------------------------------------------------------------- Paski diod
+const WARM = ['#22C55E', '#4ADE80', '#A3E635', '#FACC15', '#FBBF24', '#FB923C', '#F97316', '#EF4444'];
+const BLUE = ['#E0F2FE', '#BAE6FD', '#7DD3FC', '#38BDF8', '#0EA5E9', '#0284C7', '#2563EB', '#1D4ED8'];
+const STEPS = {
+  temp: [16, 18, 19, 21, 22, 24, 26, 28],
+  hum:  [20, 30, 35, 45, 50, 60, 70, 80],
+  co2:  [450, 600, 800, 1000, 1200, 1500, 1800, 2000]
+};
+const levelOf = (v, steps) => v == null ? 0 : steps.filter(s => v >= s).length;
+const leds = (level, colors, label) =>
+  `<div class="leds" role="img" aria-label="${label}: poziom ${level} z 8">` +
+  colors.map((c, i) => `<span class="${i < level ? 'lit' : ''}" style="background:${c}"></span>`).join('') + '</div>';
+
+function motionInfo(v) {
+  if (v == null) return { level: 0, text: '—' };
+  const n = parseFloat(v);
+  if (!isNaN(n)) {             // liczba 0–100 (intensywność) albo 0/1
+    if (n <= 0) return { level: 1, text: 'Brak ruchu' };
+    if (n === 1) return { level: 6, text: 'Wykryto' };
+    const lvl = Math.max(1, Math.min(8, Math.round(n / 12.5)));
+    return { level: lvl, text: lvl <= 3 ? 'Mały' : lvl <= 5 ? 'Średni' : 'Duży' };
+  }
+  const on = /^(on|true|tak|wykryto|yes)$/i.test(v);
+  return on ? { level: 6, text: 'Wykryto' } : { level: 1, text: 'Brak ruchu' };
+}
+const fmt = (v, d = 1) => v == null ? '—' : (Math.round(v * 10 ** d) / 10 ** d).toString().replace('.', ',');
+
+// ---------------------------------------------------------------- Ekran główny
 function buildRoomList() {
   $('roomList').innerHTML = rooms.map(r => `
-    <div class="card room" id="row-${r.id}">
+    <div class="card row" id="row-${r.id}">
       <div class="ico">${icon('lightbulb')}</div>
-      <div class="name"><b>${r.name}</b><span id="txt-${r.id}">Brak danych</span></div>
+      <button class="name" data-open="${r.id}"><b>${r.name}</b><span id="txt-${r.id}">Brak danych</span></button>
       <button class="switch" role="switch" aria-checked="false" aria-label="Światło: ${r.name}" id="sw-${r.id}"><i></i></button>
     </div>`).join('');
-  rooms.forEach(r => $('sw-' + r.id).addEventListener('click', () => toggle(r)));
+  rooms.forEach(r => $('sw-' + r.id).addEventListener('click', () => toggle(r, 'light')));
+  $('roomList').querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => showView(b.dataset.open)));
 }
 
 function buildNav() {
   const items = [{ id: 'home', name: 'Home', icon: 'home' }, ...rooms.filter(r => r.nav !== false)];
-  $('nav').innerHTML = items.map(it => `
-    <button data-view="${it.id}"><span>${icon(it.icon)}</span>${it.name}</button>`).join('');
-  $('nav').querySelectorAll('button').forEach(b =>
-    b.addEventListener('click', () => showView(b.dataset.view)));
+  $('nav').innerHTML = items.map(it => `<a data-view="${it.id}" role="button" tabindex="0"><span>${icon(it.icon)}</span>${it.name}</a>`).join('');
+  $('nav').querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => showView(a.dataset.view));
+    a.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showView(a.dataset.view); } });
+  });
 }
 
 function showView(id) {
   currentView = id;
-  $('nav').querySelectorAll('button').forEach(b => {
-    if (b.dataset.view === id) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
-  });
+  $('nav').querySelectorAll('a').forEach(a => a.dataset.view === id ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
+  const isRoom = rooms.some(r => r.id === id);
   $('home').hidden = id !== 'home';
-  $('roomView').hidden = id === 'home' || id === 'settings';
+  $('roomView').hidden = !isRoom;
+  $('camView').hidden = id !== 'cameras';
   $('settingsView').hidden = id !== 'settings';
-  $('settingsBtn').setAttribute('aria-pressed', id === 'settings' ? 'true' : 'false');
+  id === 'cameras' ? $('camBtn').setAttribute('aria-current', 'page') : $('camBtn').removeAttribute('aria-current');
+  id === 'settings' ? $('settingsBtn').setAttribute('aria-current', 'page') : $('settingsBtn').removeAttribute('aria-current');
   if (id === 'settings') fillSettings();
+  if (id === 'cameras') renderCameras();
   render();
   window.scrollTo(0, 0);
 }
 
-function stateText(r) {
+function switchText(r, key, onTxt = 'Włączone', offTxt = 'Wyłączone') {
   if (r.online === false) return 'Urządzenie offline';
-  if (r.pending) return 'Wysyłanie…';
-  if (r.noReply) return 'ESP nie odpowiada';
-  if (r.light === null) return 'Brak danych';
-  return r.light ? 'Włączone' : 'Wyłączone';
+  if (r.pend[key]) return 'Wysyłanie…';
+  if (r.noReply[key]) return 'ESP nie odpowiada';
+  if (r.sw[key] === null) return 'Brak danych';
+  return r.sw[key] ? onTxt : offTxt;
+}
+const canUse = r => connected && r.online !== false;
+
+// ---------------------------------------------------------------- Ekran pomieszczenia
+function tileHTML(r, t) {
+  if (t === 'light' || t === 'light2' || t === 'fan') {
+    const names = { light: 'Światło główne', light2: r.light2Name || 'Światło dodatkowe', fan: 'Wentylator' };
+    const icons = { light: 'lightbulb', light2: 'floor_lamp', fan: 'mode_fan' };
+    const on = !!r.sw[t];
+    const txt = t === 'fan' ? switchText(r, t, 'Włączony', 'Wyłączony') : switchText(r, t);
+    return `<button class="tile ${on ? 'on' : ''}" data-sw="${t}" aria-pressed="${on}" ${canUse(r) ? '' : 'disabled'}>
+      <div class="body"><span class="tico" style="color:var(--muted)">${icon(icons[t])}</span>
+      <span style="display:flex;flex-direction:column;gap:2px"><span class="tname">${names[t]}</span><span class="tstate">${txt}</span></span></div></button>`;
+  }
+  if (t === 'temp' || t === 'hum' || t === 'co2') {
+    const cfg = {
+      temp: { label: 'Temperatura', ic: 'device_thermostat', color: 'var(--accent)', unit: '°C', val: fmt(r.s.temp), colors: WARM },
+      hum:  { label: 'Wilgotność', ic: 'water_drop', color: '#7DD3FC', unit: '%', val: fmt(r.s.hum, 0), colors: BLUE },
+      co2:  { label: 'CO₂', ic: 'co2', color: '#6EE7A8', unit: ' <small>ppm</small>', val: fmt(r.s.co2, 0), colors: WARM }
+    }[t];
+    const lvl = levelOf(r.s[t], STEPS[t]);
+    return `<section class="tile"><div class="body"><span class="tico" style="color:${cfg.color}">${icon(cfg.ic)}</span>
+      <span style="display:flex;flex-direction:column;gap:2px"><span class="val">${cfg.val}${cfg.unit}</span><span class="tstate">${cfg.label}</span></span></div>
+      ${leds(lvl, cfg.colors, cfg.label)}</section>`;
+  }
+  if (t === 'motion') {
+    const m = motionInfo(r.s.motion);
+    return `<section class="tile"><div class="body"><span class="tico" style="color:#C4B5FD">${icon('directions_walk')}</span>
+      <span style="display:flex;flex-direction:column;gap:2px"><span class="val txt">${m.text}</span><span class="tstate">Ruch</span></span></div>
+      ${leds(m.level, WARM, 'Ruch')}</section>`;
+  }
+  if (t === 'leak') {
+    const v = r.s.leak;
+    const wet = v != null && /^(1|on|true|zalanie|wet|tak)$/i.test(v);
+    const txt = v == null ? '—' : wet ? 'ZALANIE!' : 'Sucho';
+    const badge = v == null ? '' : `<span class="badge ${wet ? 'alarm' : ''}">${wet ? 'ALARM' : 'OK'}</span>`;
+    return `<section class="tile"><div class="body"><div class="top"><span class="tico" style="color:#38BDF8">${icon('water_damage')}</span>${badge}</div>
+      <span style="display:flex;flex-direction:column;gap:2px"><span class="val txt" style="${wet ? 'color:#FCA5A5' : ''}">${txt}</span><span class="tstate">Czujnik zalania</span></span></div></section>`;
+  }
+  return '';
 }
 
+function renderRoom(r) {
+  $('rvName').textContent = r.name;
+  const dev = $('rvDevice');
+  dev.className = 'pill' + (r.online === true ? ' ok' : r.online === false ? ' err' : '');
+  dev.querySelector('span').textContent = r.online === true ? 'Urządzenie online' : r.online === false ? 'Urządzenie offline' : 'Brak danych';
+  $('rvTiles').innerHTML = r.tiles.map(t => tileHTML(r, t)).join('');
+  $('rvTiles').querySelectorAll('[data-sw]').forEach(b => b.addEventListener('click', () => toggle(r, b.dataset.sw)));
+}
+
+// ---------------------------------------------------------------- Kamery
+function renderCameras() {
+  $('camCount').textContent = CONFIG.cameras.length === 1 ? '1 kamera' : `${CONFIG.cameras.length} kamery`;
+  $('camList').innerHTML = CONFIG.cameras.map(c => `
+    <section class="card camcard">
+      <div class="camview">
+        ${c.url
+          ? `<img src="${c.url}" alt="Obraz z kamery: ${c.name}"><span class="live"><i></i>NA ŻYWO</span>`
+          : `${icon('videocam_off')}<p>Kamera nie jest jeszcze podłączona.<br>Adres obrazu dodasz w CONFIG → cameras.</p>`}
+      </div>
+      <div class="camfoot"><span class="ico">${icon('videocam')}</span>
+        <span style="flex:1;display:flex;flex-direction:column;gap:2px"><b>${c.name}</b><span>${c.url ? 'Kamera online' : 'Brak połączenia'}</span></span>
+        ${c.url ? `<a class="iconbtn" href="${c.url}" target="_blank" rel="noopener" aria-label="Pełny ekran: ${c.name}">${icon('fullscreen')}</a>` : ''}
+      </div>
+    </section>`).join('');
+}
+
+// ---------------------------------------------------------------- Rysowanie
 function render() {
   let on = 0;
   rooms.forEach(r => {
-    if (r.light) on++;
-    const canUse = connected && r.online !== false;
-    $('row-' + r.id).classList.toggle('on', !!r.light);
-    $('txt-' + r.id).textContent = stateText(r);
+    if (r.sw.light) on++;
+    $('row-' + r.id).classList.toggle('on', !!r.sw.light);
+    $('txt-' + r.id).textContent = switchText(r, 'light');
     const sw = $('sw-' + r.id);
-    sw.setAttribute('aria-checked', r.light ? 'true' : 'false');
-    sw.disabled = !canUse;
+    sw.setAttribute('aria-checked', r.sw.light ? 'true' : 'false');
+    sw.disabled = !canUse(r);
   });
   $('countOn').textContent = `${on} z ${rooms.length} włączone`;
-
+  const inside = rooms.find(r => r.id === CONFIG.insideRoom);
+  $('inTemp').textContent = inside && inside.s.temp != null ? fmt(inside.s.temp) + '°' : '–';
   const r = rooms.find(x => x.id === currentView);
-  if (r) {
-    $('rvName').textContent = r.name;
-    $('rvState').textContent = 'Światło: ' + stateText(r).toLowerCase();
-    $('rvBtn').classList.toggle('on', !!r.light);
-    $('rvBtn').disabled = !(connected && r.online !== false);
-    const dev = $('rvDevice');
-    dev.className = 'pill' + (r.online === true ? ' ok' : r.online === false ? ' err' : '');
-    dev.textContent = r.online === true ? 'Urządzenie online' : r.online === false ? 'Urządzenie offline' : 'Brak danych z urządzenia';
-  }
+  if (r) renderRoom(r);
 }
-
-$('rvBtn').addEventListener('click', () => {
-  const r = rooms.find(x => x.id === currentView);
-  if (r) toggle(r);
-});
 
 function setStatus(kind, text) {
   $('status').className = 'status' + (kind ? ' ' + kind : '');
@@ -293,17 +463,15 @@ function setStatus(kind, text) {
 }
 
 // ---------------------------------------------------------------- MQTT
-function toggle(r) {
-  if (!connected) return;
-  const next = !r.light;
-  client.publish(r.base + '/set', next ? 'ON' : 'OFF');
+function toggle(r, key) {
+  if (!canUse(r)) return;
+  client.publish(`${r.prefix}/${SWITCH_TOPIC[key]}/set`, r.sw[key] ? 'OFF' : 'ON');
   if (navigator.vibrate) navigator.vibrate(15);
-  // Stan zmieni się, gdy ESP potwierdzi go w temacie /state.
-  // Jeśli w 4 s nie potwierdzi – pokazujemy "ESP nie odpowiada".
-  r.pending = true; r.noReply = false;
-  clearTimeout(r.timer);
-  r.timer = setTimeout(() => {
-    if (r.pending) { r.pending = false; r.noReply = true; render(); }
+  // Stan zmieni się, gdy ESP potwierdzi go w temacie /state (4 s na odpowiedź)
+  r.pend[key] = true; r.noReply[key] = false;
+  clearTimeout(r.timers[key]);
+  r.timers[key] = setTimeout(() => {
+    if (r.pend[key]) { r.pend[key] = false; r.noReply[key] = true; render(); }
   }, 4000);
   render();
 }
@@ -311,15 +479,10 @@ function toggle(r) {
 function connectMqtt() {
   if (typeof mqtt === 'undefined') { setStatus('err', 'Brak biblioteki MQTT'); return; }
   const b = brokerSettings();
-  console.log('MQTT →', b.url, b.private ? '(prywatny)' : '(publiczny)');
   const me = mqtt.connect(b.url, {
     clientId: 'sparrow-app-' + Math.random().toString(16).slice(2, 10),
-    username: b.username,
-    password: b.password,
-    keepalive: 30,
-    reconnectPeriod: 3000,
-    connectTimeout: 10000,
-    clean: true
+    username: b.username, password: b.password,
+    keepalive: 30, reconnectPeriod: 3000, connectTimeout: 10000, clean: true
   });
   client = me;
   // Każde zdarzenie sprawdza, czy pochodzi z aktualnego połączenia
@@ -327,40 +490,49 @@ function connectMqtt() {
 
   on('connect', () => {
     connected = true;
-    setStatus('ok', b.private ? 'Połączono' : 'Połączono (publiczny)');
-    const topics = [CONFIG.tempTopic];
-    rooms.forEach(r => topics.push(r.base + '/state', r.base + '/online'));
-    client.subscribe(topics);
+    setStatus('ok', b.private ? 'Połączono' : 'Publiczny');
+    const topics = [];
+    rooms.forEach(r => {
+      Object.values(SWITCH_TOPIC).forEach(t => topics.push(`${r.prefix}/${t}/state`));
+      topics.push(`${r.prefix}/swiatlo/online`);
+      Object.keys(SENSOR_TOPIC).forEach(t => topics.push(`${r.prefix}/${t}`));
+    });
+    me.subscribe(topics);
+    hideSplash();
     render();
   });
   on('reconnect', () => setStatus('', 'Łączenie…'));
-  on('offline',   () => { connected = false; setStatus('err', 'Rozłączono'); render(); });
-  on('close',     () => { connected = false; render(); });
+  on('offline', () => { connected = false; setStatus('err', 'Rozłączono'); render(); });
+  on('close', () => { connected = false; render(); });
   on('error', e => {
-    console.warn('MQTT:', e && e.message);
     const auth = e && (e.code === 4 || e.code === 5 || /auth|Not authorized/i.test(e.message || ''));
     setStatus('err', auth ? 'Zły login lub hasło' : 'Błąd połączenia');
   });
 
   on('message', (topic, payload) => {
     const msg = payload.toString().trim();
-    if (topic === CONFIG.tempTopic) {
-      const t = parseFloat(msg.replace(',', '.'));
-      if (!isNaN(t)) $('inTemp').textContent = t.toFixed(1) + '°';
-      return;
-    }
     for (const r of rooms) {
-      if (topic === r.base + '/state') {
-        r.light = msg.toUpperCase() === 'ON';
-        r.pending = false; r.noReply = false; clearTimeout(r.timer);
+      if (!topic.startsWith(r.prefix + '/')) continue;
+      const rest = topic.slice(r.prefix.length + 1);
+      if (rest === 'swiatlo/online') { r.online = msg.toLowerCase() === 'online'; break; }
+      for (const [key, t] of Object.entries(SWITCH_TOPIC)) {
+        if (rest === `${t}/state`) {
+          r.sw[key] = msg.toUpperCase() === 'ON';
+          r.pend[key] = false; r.noReply[key] = false; clearTimeout(r.timers[key]);
+        }
       }
-      if (topic === r.base + '/online') r.online = msg.toLowerCase() === 'online';
+      if (SENSOR_TOPIC[rest]) {
+        const k = SENSOR_TOPIC[rest];
+        if (k === 'motion' || k === 'leak') r.s[k] = msg;
+        else { const n = parseFloat(msg.replace(',', '.')); r.s[k] = isNaN(n) ? null : n; }
+      }
+      break;
     }
     render();
   });
 }
 
-// ---------------------------------------------------------------- Zegar
+// ---------------------------------------------------------------- Zegar, księżyc, pogoda
 function tick() {
   const d = new Date();
   $('time').textContent = d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
@@ -368,30 +540,13 @@ function tick() {
   $('weekday').textContent = wd.charAt(0).toUpperCase() + wd.slice(1);
   $('date').textContent = d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' });
 }
-
-// ---------------------------------------------------------------- Księżyc
 function moonInfo(date = new Date()) {
-  const SYN = 29.530588853;
-  const ref = Date.UTC(2000, 0, 6, 18, 14);           // znany nów
+  const SYN = 29.530588853, ref = Date.UTC(2000, 0, 6, 18, 14);
   const age = (((date - ref) / 86400000) % SYN + SYN) % SYN;
   const illum = Math.round((1 - Math.cos(2 * Math.PI * age / SYN)) / 2 * 100);
-  const names = ['Nów', 'Przybywający sierp', 'Pierwsza kwadra', 'Przybywający garb',
-                 'Pełnia', 'Ubywający garb', 'Ostatnia kwadra', 'Ubywający sierp'];
-  const idx = Math.floor(((age / SYN) * 8) + 0.5) % 8;
-  return `${names[idx]} · ${illum}%`;
+  const names = ['Nów', 'Przybywający sierp', 'Pierwsza kwadra', 'Przybywający garb', 'Pełnia', 'Ubywający garb', 'Ostatnia kwadra', 'Ubywający sierp'];
+  return `${names[Math.floor((age / SYN) * 8 + 0.5) % 8]} · ${illum}%`;
 }
-
-// ---------------------------------------------------------------- Pogoda
-function weatherIconName(code, isDay) {
-  if (code === 0 || code === 1) return isDay ? 'clear_day' : 'bedtime';
-  if (code === 2) return isDay ? 'partly_cloudy_day' : 'partly_cloudy_night';
-  if (code === 3) return 'cloud';
-  if (code === 45 || code === 48) return 'foggy';
-  if (code >= 71 && code <= 77 || code === 85 || code === 86) return 'weather_snowy';
-  if (code >= 95) return 'thunderstorm';
-  return 'rainy';
-}
-
 const WMO = {
   0: 'Bezchmurnie', 1: 'Przeważnie bezchmurnie', 2: 'Częściowe zachmurzenie', 3: 'Pochmurno',
   45: 'Mgła', 48: 'Mgła szronowa', 51: 'Lekka mżawka', 53: 'Mżawka', 55: 'Gęsta mżawka',
@@ -400,13 +555,19 @@ const WMO = {
   77: 'Ziarna śniegu', 80: 'Przelotny deszcz', 81: 'Przelotny deszcz', 82: 'Silne opady',
   85: 'Przelotny śnieg', 86: 'Przelotny śnieg', 95: 'Burza', 96: 'Burza z gradem', 99: 'Burza z gradem'
 };
-
+function weatherIconName(code, isDay) {
+  if (code === 0 || code === 1) return isDay ? 'clear_day' : 'bedtime';
+  if (code === 2) return isDay ? 'partly_cloudy_day' : 'partly_cloudy_night';
+  if (code === 3) return 'cloud';
+  if (code === 45 || code === 48) return 'foggy';
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'weather_snowy';
+  if (code >= 95) return 'thunderstorm';
+  return 'rainy';
+}
 async function loadWeather() {
   const { lat, lon } = CONFIG.location;
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-              `&current=temperature_2m,weather_code,wind_speed_10m,is_day&wind_speed_unit=kmh&timezone=auto`;
   try {
-    const res = await fetch(url);
+    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m,is_day&wind_speed_unit=kmh&timezone=auto`);
     const c = (await res.json()).current;
     $('outTemp').textContent = Math.round(c.temperature_2m) + '°';
     $('weatherDesc').textContent = WMO[c.weather_code] || 'Pogoda';
@@ -420,21 +581,21 @@ async function loadWeather() {
 // ---------------------------------------------------------------- Ustawienia: formularz
 function fillSettings() {
   const c = loadCreds();
-  $('fHost').value = c.host || '';
+  $('fHost').value = c.host || CONFIG.privateHost;
   $('fUser').value = c.user || '';
   $('fPass').value = c.pass || '';
-  $('fInfo').textContent = c.host ? 'Używasz prywatnego brokera (szyfrowane połączenie wss).' : 'Używasz publicznego brokera testowego.';
+  $('fInfo').textContent = c.user ? 'Używasz prywatnego brokera (połączenie szyfrowane).' : 'Wpisz login i hasło, aby połączyć się z prywatnym brokerem.';
 }
 function reconnect() {
-  // Stare połączenie zamykamy i odcinamy od zdarzeń, żeby nie nadpisywało statusu
   if (client) { const old = client; client = null; try { old.removeAllListeners(); old.end(true); } catch (e) {} }
   connected = false;
-  rooms.forEach(r => { r.light = null; r.online = null; r.pending = false; r.noReply = false; });
+  rooms.forEach(r => { r.online = null; Object.keys(r.sw).forEach(k => { r.sw[k] = null; r.pend[k] = false; r.noReply[k] = false; }); });
   setStatus('', 'Łączenie…');
   render();
   connectMqtt();
 }
 $('settingsBtn').addEventListener('click', () => showView(currentView === 'settings' ? 'home' : 'settings'));
+$('camBtn').addEventListener('click', () => showView(currentView === 'cameras' ? 'home' : 'cameras'));
 $('settingsForm').addEventListener('submit', e => {
   e.preventDefault();
   const ok = saveCreds({ host: $('fHost').value.trim(), user: $('fUser').value.trim(), pass: $('fPass').value });
@@ -442,11 +603,11 @@ $('settingsForm').addEventListener('submit', e => {
   reconnect();
   setTimeout(() => showView('home'), 600);
 });
-$('fClear').addEventListener('click', () => {
-  saveCreds({});
-  fillSettings();
-  reconnect();
-});
+$('fClear').addEventListener('click', () => { saveCreds({}); fillSettings(); reconnect(); });
+
+// ---------------------------------------------------------------- Ekran startowy
+function hideSplash() { $('splash').classList.add('hide'); }
+setTimeout(hideSplash, 3000);   // najpóźniej po 3 s, nawet bez połączenia
 
 // ---------------------------------------------------------------- Start
 buildRoomList();
