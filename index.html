@@ -129,8 +129,10 @@ nav a[aria-current="page"]{color:var(--accent);font-weight:700}
 nav a[aria-current="page"] span{background:var(--on-bg)}
 
 /* Ekran startowy */
-#splash{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .4s}
-#splash.hide{opacity:0;pointer-events:none}
+#splash{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px}
+#splash.hide{display:none}
+/* Dopóki trwa ekran startowy, aplikacja pod spodem jest całkowicie ukryta – nic nie prześwituje */
+body.starting main,body.starting nav{visibility:hidden}
 .logo{width:128px;height:128px;border-radius:36px;background:var(--accent);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 12px var(--card)}
 #splash h1{margin:0;font-size:34px;font-weight:800;letter-spacing:.16em}
 #splash p{margin:0;font-size:15px;color:var(--muted)}
@@ -141,7 +143,7 @@ nav a[aria-current="page"] span{background:var(--on-bg)}
 @keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
 </style>
 </head>
-<body>
+<body class="starting">
 
 <!-- EKRAN STARTOWY -->
 <div id="splash" role="status" aria-label="Uruchamianie System Sparrow">
@@ -615,7 +617,7 @@ $('fShow').addEventListener('click', () => {
 });
 
 // ---------------------------------------------------------------- Ekran startowy
-function hideSplash() { $('splash').classList.add('hide'); }
+function hideSplash() { $('splash').classList.add('hide'); document.body.classList.remove('starting'); }
 setTimeout(hideSplash, 2000);   // logo i napisy zawsze przez 2 s
 
 // ---------------------------------------------------------------- Start
