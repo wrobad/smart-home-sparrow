@@ -212,7 +212,10 @@ nav a[aria-current="page"] span{background:var(--on-bg)}
       </div>
       <div class="field">
         <label for="fPass">Hasło</label>
-        <input id="fPass" type="password" autocomplete="current-password">
+        <div style="display:flex;gap:8px">
+          <input id="fPass" type="password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" style="flex:1;min-width:0">
+          <button type="button" class="iconbtn" id="fShow" aria-label="Pokaż hasło" aria-pressed="false" style="width:48px;height:48px;border-radius:14px"><span class="msr" aria-hidden="true">visibility</span></button>
+        </div>
       </div>
       <div class="btnrow">
         <button class="btn primary" type="submit">Zapisz i połącz</button>
@@ -597,12 +600,19 @@ $('settingsBtn').addEventListener('click', () => showView(currentView === 'setti
 $('camBtn').addEventListener('click', () => showView(currentView === 'cameras' ? 'home' : 'cameras'));
 $('settingsForm').addEventListener('submit', e => {
   e.preventDefault();
-  const ok = saveCreds({ host: $('fHost').value.trim(), user: $('fUser').value.trim(), pass: $('fPass').value });
+  const ok = saveCreds({ host: $('fHost').value.trim(), user: $('fUser').value.trim().toLowerCase(), pass: $('fPass').value.trim() });
   $('fInfo').textContent = ok ? 'Zapisano. Łączę…' : 'Nie udało się zapisać w tym telefonie.';
   reconnect();
   setTimeout(() => showView('home'), 600);
 });
 $('fClear').addEventListener('click', () => { saveCreds({}); fillSettings(); reconnect(); });
+$('fShow').addEventListener('click', () => {
+  const show = $('fPass').type === 'password';
+  $('fPass').type = show ? 'text' : 'password';
+  $('fShow').setAttribute('aria-pressed', show);
+  $('fShow').setAttribute('aria-label', show ? 'Ukryj hasło' : 'Pokaż hasło');
+  $('fShow').querySelector('.msr').textContent = show ? 'visibility_off' : 'visibility';
+});
 
 // ---------------------------------------------------------------- Ekran startowy
 function hideSplash() { $('splash').classList.add('hide'); }
