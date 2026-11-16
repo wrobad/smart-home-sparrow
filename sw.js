@@ -1,7 +1,7 @@
 // Prosty service worker: aplikacja otwiera się też przy słabym zasięgu.
 // Najpierw sieć, a gdy jej brak – wersja z pamięci podręcznej.
-const CACHE = 'sparrow-v4';
-const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
+const CACHE = 'sparrow-v5';
+const SHELL = ['./', './index.html', './manifest.json', './sparrow-192.png', './sparrow-512.png', './sparrow-maskable-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)));
