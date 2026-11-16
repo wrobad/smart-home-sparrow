@@ -498,7 +498,6 @@ function connectMqtt() {
       Object.keys(SENSOR_TOPIC).forEach(t => topics.push(`${r.prefix}/${t}`));
     });
     me.subscribe(topics);
-    hideSplash();
     render();
   });
   on('reconnect', () => setStatus('', 'Łączenie…'));
@@ -607,7 +606,7 @@ $('fClear').addEventListener('click', () => { saveCreds({}); fillSettings(); rec
 
 // ---------------------------------------------------------------- Ekran startowy
 function hideSplash() { $('splash').classList.add('hide'); }
-setTimeout(hideSplash, 3000);   // najpóźniej po 3 s, nawet bez połączenia
+setTimeout(hideSplash, 2000);   // logo i napisy zawsze przez 2 s
 
 // ---------------------------------------------------------------- Start
 buildRoomList();
